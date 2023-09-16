@@ -1,0 +1,88 @@
+version: "3"
+services:
+
+
+  reciever:
+    build: reciever/
+    container_name: reciever
+    ports:
+      - 9292:9292
+    networks:
+      - message-app-net
+    depends_on:
+      - rabbit
+      - sender
+      - db
+    
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+
+
+  sender:
+    build: sender/
+    container_name: sender
+    ports:
+      - 9090:9090
+    networks:
+      - message-app-net
+    depends_on:
+      - db
+    
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+
+
+  db:
+    image: "postgres:15.3-alpine"
+    container_name: db
+    volumes:
+      - reciever_db_data:/var/lib/postgresql/data/
+    env_file:
+      - .env.local
+    networks:
+      - message-app-net
+    
+
+
+  rabbit:
+    image: "rabbitmq:3-management"
+    container_name: rabbit
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - message-app-net
+    env_file:
+      - .env.local
+    volumes:
+      - reciever-rabbit:/var/lib/rabbitmq
+      - sender-rabbit:/var/log/rabbitmq
+    
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+  proxy-server:
+    image: nginx:1.25.1
+    container_name: p1-nginx
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+    ports:
+      - 80:80
+    depends_on:
+      - sender
+    networks:
+      - message-app-net
+
+volumes:
+  reciever-rabbit:
+  sender-rabbit:
+  reciever_db_data:
+networks:
+  message-app-net:
+    driver: bridge
