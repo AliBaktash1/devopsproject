@@ -14,11 +14,11 @@ func main() {
 
 	// rabbitMQ config
 	var (
-		user       = ""
-		password   = ""
-		host       = ""
-		rabbitPort = ""
-		queueName  = ""
+		user       = "guest"
+		password   = "guest"
+		host       = "rabbit"
+		rabbitPort = "5672"
+		queueName  = "rabbit"
 	)
 
 	conn := fmt.Sprintf("amqp://%s:%s@%s:%s/", user, password, host, rabbitPort)
