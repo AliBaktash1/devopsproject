@@ -1,7 +1,7 @@
 name: publish
 on: [push]
 jobs:
-publish-sender-reciever-image:
+publish-hello-docker-image:
 runs-on: ubuntu-latest
 steps:
 - uses: actions/checkout@v2
@@ -11,13 +11,12 @@ with:
 registry: ghcr.io
 username: AliBaktash1
 password: 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
-- name: Build the sender-reciever Docker image
+- name: Build the hello-docker Docker image
 run: |
-       docker build . --tag ghcr.io/deselikem/hello-docker-gcr-demo:latest
-       docker run ghcr.io/deselikem/hello-docker-gcr-demo:latest
-       docker push ghcr.io/deselikem/hello-docker-gcr-demo:latest
-
-      - name: Build And Push Docker Image ( receiver )
-        run: |
-          make build  DOCKER_IMAGE_NAME="ghcr.io/AliBaktash1/devopsproject/receiver:latest" DOCKERFILE="./receiver/Dockerfile"
-          make push PATH_TO_PUSH="ghcr.io/AliBaktash1/devopsproject/receiver:latest"
+       docker build . --tag ghcr.io/AliBaktash1/devopsproject/tree/main/sender:latest
+       docker run ghcr.io/AliBaktash1/devopsproject/tree/main/sender:latest
+       docker push ghcr.io/AliBaktash1/devopsproject/tree/main/sender:latest
+run: |
+       docker build . --tag ghcr.io/AliBaktash1/devopsproject/tree/main/reciever:latest
+       docker run ghcr.io/AliBaktash1/devopsproject/tree/main/reciever:latest
+       docker push ghcr.io/AliBaktash1/devopsproject/tree/main/reciever:latest
