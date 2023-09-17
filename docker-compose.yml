@@ -3,48 +3,55 @@ services:
 
 
   reciever:
-    build: reciever/
+    build: ./reciever
     container_name: reciever
-    ports:
-      - 9292:9292
+    # ports:
+    #   - 9292:9292
     networks:
+      - db-net
       - message-app-net
+      - rabbit-net
     depends_on:
       - rabbit
       - sender
       - db
-    
+    restart: on-failure:3
     volumes:
       - type: bind
         source: .
-        target: /app
+        target: /app/reciever
 
 
   sender:
-    build: sender/
+    build: ./sender
     container_name: sender
     ports:
       - 9090:9090
     networks:
       - message-app-net
+      - server-net
+      - db-net
+      - rabbit-net
     depends_on:
       - db
-    
+      - rabbit
     volumes:
       - type: bind
         source: .
-        target: /app
-
+        target: /app/sender
+    restart: on-failure:4
 
   db:
     image: "postgres:15.3-alpine"
     container_name: db
     volumes:
-      - reciever_db_data:/var/lib/postgresql/data/
+      - reciever-db-data:/var/lib/postgresql/data/
     env_file:
       - .env.local
     networks:
       - message-app-net
+      - db-net
+    restart: on-failure:4
     
 
 
@@ -52,22 +59,25 @@ services:
     image: "rabbitmq:3-management"
     container_name: rabbit
     ports:
-      - "15672:15672"
       - "5672:5672"
+      - "15672:15672"
     networks:
       - message-app-net
-    env_file:
-      - .env.local
+      - rabbit-net
     volumes:
       - reciever-rabbit:/var/lib/rabbitmq
       - sender-rabbit:/var/log/rabbitmq
-    
+    depends_on:
+      - db
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+
+
+
   proxy-server:
     image: nginx:1.25.1
-    container_name: p1-nginx
+    container_name: ngin
     volumes:
       - type: bind
         source: ./nginx/nginx.conf
@@ -78,11 +88,14 @@ services:
       - sender
     networks:
       - message-app-net
-
+      - server-net
+    restart: on-failure:4
 volumes:
   reciever-rabbit:
   sender-rabbit:
-  reciever_db_data:
+  reciever-db-data:
 networks:
   message-app-net:
-    driver: bridge
+  server-net:
+  db-net:
+  rabbit-net:
