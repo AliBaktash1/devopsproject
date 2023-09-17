@@ -15,7 +15,7 @@ services:
       - rabbit
       - sender
       - db
-    restart: on-failure:3
+    restart: on-failure
     volumes:
       - type: bind
         source: .
@@ -72,7 +72,7 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-
+    restart: on-failure:4
 
 
   proxy-server:
@@ -90,6 +90,8 @@ services:
       - message-app-net
       - server-net
     restart: on-failure:4
+
+
 volumes:
   reciever-rabbit:
   sender-rabbit:
