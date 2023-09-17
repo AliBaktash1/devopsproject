@@ -1,17 +1,34 @@
-FROM golang:1.20-alpine
+FROM golang:1.20-alpine AS build
 
 
-RUN mkdir app
-WORKDIR /app
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
+RUN mkdir -p app/sender
 
-COPY . ./
+
+WORKDIR /app/sender
+
+
+ENV GOPATH /go
+ENV GOCACHE /go-build
 ENV GO111MODULE=on
 ENV GOOS=linux
 ENV CGO_ENABLED=0
+
+COPY go.mod ./
+COPY go.sum ./
+RUN  go mod download
+
+COPY . .
+
+RUN go build -o result ./
+
+FROM alpine:3.18.2
+
+RUN mkdir project
+
+WORKDIR /project
+
+COPY --from=build /app/sender/result .
+
 EXPOSE 9090
 
-ENTRYPOINT go run .
-
+CMD [ "./result" ]
